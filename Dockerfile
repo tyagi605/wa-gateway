@@ -10,7 +10,6 @@ RUN npm install --production
 
 # Copy source code
 COPY . .
-COPY .env ./.env
 
 # Create auth_state directory for WhatsApp session persistence
 RUN mkdir -p auth_state
