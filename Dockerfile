@@ -9,7 +9,7 @@ COPY package*.json ./
 RUN npm install --production
 
 # Copy source code
-COPY src ./src
+COPY . .
 COPY .env ./.env
 
 # Create auth_state directory for WhatsApp session persistence
