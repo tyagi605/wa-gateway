@@ -8,6 +8,14 @@ app.use(express.json());
 const API_KEY = process.env.API_KEY;
 const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
+// FIX: Validate API_KEY is set and not using default value
+if (!API_KEY || API_KEY === 'your-super-secret-random-key-change-this-12345') {
+  console.error('❌ ERROR: API_KEY environment variable not set or using default value!');
+  console.error('Set a strong API_KEY before deploying to production.');
+  console.error('Example: export API_KEY="your-unique-secret-key"');
+  process.exit(1);
+}
+
 // Authentication middleware
 function auth(req, res, next) {
   const key = req.headers['x-api-key'] || req.query.apiKey;
@@ -83,33 +91,85 @@ app.post('/api/v1/message/create', auth, async (req, res) => {
       return res.status(400).json({ success: false, error: 'receiverMobileNo required' });
     }
 
+    // FIX: Add validation for message/filePathUrl
+    if (!message && !filePathUrl) {
+      return res.status(400).json({ success: false, error: 'Either message or filePathUrl is required' });
+    }
+
     const numbers = String(receiverMobileNo)
       .split(',')
       .map(n => n.trim())
       .filter(Boolean);
 
-    const results = [];
-
-    for (const n of numbers) {
-      const r = filePathUrl
-        ? await wa.sendMedia(n, filePathUrl, caption)
-        : await wa.sendText(n, message);
-
-      results.push({ number: n, messageId: r.key.id });
+    if (numbers.length === 0) {
+      return res.status(400).json({ success: false, error: 'No valid phone numbers provided' });
     }
 
-    res.json({ success: true, results });
+    const results = [];
+    const errors = [];
+
+    for (const n of numbers) {
+      try {
+        const r = filePathUrl
+          ? await wa.sendMedia(n, filePathUrl, caption)
+          : await wa.sendText(n, message);
+
+        // FIX: Safe property access with fallback
+        results.push({ 
+          number: n, 
+          messageId: r.key?.id || r.messageTimestamp || 'unknown',
+          success: true
+        });
+      } catch (error) {
+        errors.push({
+          number: n,
+          error: error.message,
+          success: false
+        });
+      }
+    }
+
+    // FIX: Return both successful and failed sends
+    const response = {
+      success: errors.length === 0,
+      results: results,
+      errors: errors.length > 0 ? errors : undefined,
+      summary: {
+        total: numbers.length,
+        successful: results.length,
+        failed: errors.length
+      }
+    };
+
+    res.status(errors.length === 0 ? 200 : 207).json(response);
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
   }
 });
 
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ success: false, error: 'Endpoint not found' });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({ success: false, error: 'Internal server error' });
+});
+
 // Initialize WhatsApp connection and start server
-await wa.start();
+try {
+  await wa.start();
+} catch (error) {
+  console.error('Failed to start WhatsApp connection:', error);
+  process.exit(1);
+}
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`\n✅ Gateway running on http://localhost:${PORT}`);
   console.log(`📱 Scan QR code at http://localhost:${PORT}/qr`);
-  console.log(`🔐 API Key: ${API_KEY}\n`);
+  console.log(`🔐 API Key configured: ${API_KEY.substring(0, 8)}...`);
+  console.log(`🌐 Webhook URL: ${WEBHOOK_URL || 'Not configured'}\n`);
 });
