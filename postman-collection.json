@@ -1,0 +1,157 @@
+{
+  "info": {
+    "_postman_id": "wa-gateway-collection",
+    "name": "WhatsApp Gateway API",
+    "description": "API collection for WhatsApp Gateway testing",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Health check endpoint (no auth required)"
+      },
+      "response": []
+    },
+    {
+      "name": "2. Get Account Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{api_key}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/account/detail",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "account", "detail"]
+        },
+        "description": "Get WhatsApp connection status"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Send Text Message",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{api_key}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"receiverMobileNo\": \"+919999999999\",\n  \"message\": \"Hello! This is a test message from WhatsApp Gateway 🎉\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/message/create",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "message", "create"]
+        },
+        "description": "Send a text message to a single contact"
+      },
+      "response": []
+    },
+    {
+      "name": "4. Send Image Message",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{api_key}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"receiverMobileNo\": \"+919999999999\",\n  \"filePathUrl\": \"https://via.placeholder.com/300\",\n  \"caption\": \"This is a test image\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/message/create",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "message", "create"]
+        },
+        "description": "Send an image with caption"
+      },
+      "response": []
+    },
+    {
+      "name": "5. Send to Multiple Numbers",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{api_key}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"receiverMobileNo\": \"+919999999999, +918888888888, +917777777777\",\n  \"message\": \"Broadcast message to multiple contacts\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/message/create",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "message", "create"]
+        },
+        "description": "Send message to multiple phone numbers (comma-separated)"
+      },
+      "response": []
+    },
+    {
+      "name": "6. QR Code Page",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/qr",
+          "host": ["{{base_url}}"],
+          "path": ["qr"]
+        },
+        "description": "Open in browser to view QR code and connection status"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "your-api-key-here",
+      "type": "string"
+    }
+  ]
+}

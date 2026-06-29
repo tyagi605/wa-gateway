@@ -1,0 +1,21 @@
+version: '3.9'
+
+services:
+  wa-gateway:
+    build: .
+    container_name: wa-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      API_KEY: ${API_KEY:-your-super-secret-random-key-change-this-12345}
+      WEBHOOK_URL: ${WEBHOOK_URL:-}
+    volumes:
+      - ./auth_state:/app/auth_state
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
