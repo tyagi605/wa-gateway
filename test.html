@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Simple Test Page</title>
+	<style>
+		body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:20px}
+		.pass{color:green}
+		.fail{color:red}
+		pre{background:#f5f5f5;padding:10px}
+	</style>
+</head>
+<body>
+	<h1>Quick Tests</h1>
+	<div id="results"></div>
+
+	<script>
+		function assertEqual(actual, expected, msg){
+			if (actual === expected) return {ok:true,msg:msg};
+			return {ok:false,msg: msg + ' — expected: '+JSON.stringify(expected)+', got: '+JSON.stringify(actual)};
+		}
+
+		const tests = [];
+		function test(name, fn){ tests.push({name,fn}); }
+
+		// Example code under test
+		function add(a,b){ return a+b; }
+		function isEven(n){ return n%2===0; }
+
+		// Tests
+		test('add positive numbers', ()=> assertEqual(add(2,3),5,'add(2,3)'));
+		test('add with zero', ()=> assertEqual(add(0,5),5,'add(0,5)'));
+		test('isEven true', ()=> assertEqual(isEven(4),true,'isEven(4)'));
+		test('isEven false', ()=> assertEqual(isEven(3),false,'isEven(3)'));
+
+		// Runner
+		(function run(){
+			const out = document.getElementById('results');
+			let passed=0;
+			tests.forEach(t=>{
+				try{
+					const res = t.fn();
+					const ok = res && res.ok;
+					const el = document.createElement('div');
+					el.className = ok ? 'pass' : 'fail';
+					el.textContent = (ok? 'PASS: ':'FAIL: ') + t.name + (ok? '' : ' — '+res.msg);
+					out.appendChild(el);
+					if(ok) passed++;
+				}catch(e){
+					const el = document.createElement('div'); el.className='fail'; el.textContent = 'ERROR: '+t.name+' — '+e;
+					out.appendChild(el);
+				}
+			});
+			const summary = document.createElement('pre');
+			summary.textContent = `Summary: ${passed}/${tests.length} tests passed`;
+			out.appendChild(summary);
+		})();
+	</script>
+</body>
+</html>
